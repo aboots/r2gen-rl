@@ -15,8 +15,10 @@ class R2GenModel(nn.Module):
         self.encoder_decoder = EncoderDecoder(args, tokenizer)
         if args.dataset_name == 'iu_xray':
             self.forward = self.forward_iu_xray
-        else:
+        elif args.dataset_name == 'mimic_cxr':
             self.forward = self.forward_mimic_cxr
+        else:
+            self.forward = self.forward_ffa_ir
 
     def __str__(self):
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
@@ -45,4 +47,36 @@ class R2GenModel(nn.Module):
         else:
             raise ValueError
         return output
+    
+    # def forward_ffa_ir(self, images, targets=None, mode='train', update_opts={}):
+    #     for i in range(images.shape[0]):
+    #         att_features = self.visual_extractor(images[i])
+    #         if i == 0:
+    #             att_feats = att_features.unsqueeze(0)
+    #         else:
+    #             att_feats = torch.cat((att_feats, att_features.unsqueeze(0)), dim=0)
+    #     fc_feats = att_feats.mean(dim=1)
+    #     if mode == 'train':
+    #         output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
+    #     elif mode == 'sample':
+    #         output, _ = self.encoder_decoder(fc_feats, att_feats, mode='sample')
+    #     else:
+    #         raise ValueError
+    #     return output
 
+    def forward_ffair(self, images, targets=None, mode='train'):
+        att_feats = 0
+        fc_feats = 0
+        for ind in range(images.shape[1]):
+            att_feats_new, fc_feats_new = self.visual_extractor(images[:, ind])
+            att_feats += att_feats_new
+            fc_feats += fc_feats_new
+        att_feats /= images.shape[1]
+        fc_feats /= images.shape[1]
+        if mode == 'train':
+            output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
+        elif mode == 'sample':
+            output, _ = self.encoder_decoder(fc_feats, att_feats, mode='sample')
+        else:
+            raise ValueError
+        return output

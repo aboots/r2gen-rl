@@ -1,0 +1,12 @@
+python3.10 main.py \
+--image_dir data/ffa_ir/images/ \
+--ann_path data/ffa_ir/annotation2.json \
+--dataset_name ffa_ir \
+--max_seq_length 80 \
+--threshold 4 \
+--batch_size 16 \
+--epochs 100 \
+--save_dir result \
+--step_size 50 \
+--gamma 0.1 \
+--seed 9223
