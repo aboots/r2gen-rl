@@ -64,7 +64,7 @@ class R2GenModel(nn.Module):
     #         raise ValueError
     #     return output
 
-    def forward_ffair(self, images, targets=None, mode='train'):
+    def forward_ffa_ir(self, images, targets=None, mode='train'):
         att_feats = 0
         fc_feats = 0
         for ind in range(images.shape[1]):

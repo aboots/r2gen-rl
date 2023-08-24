@@ -68,8 +68,8 @@ class FFAIRImageDataset(BaseDataset):
             if self.transform is not None:
                 images.append(self.transform(image))
         images = torch.stack(images, 0)
-        report_ids = self.reports[idx]
-        report_masks = self.masks[idx]
+        report_ids = example['ids']
+        report_masks = example['mask']
         seq_length = len(report_ids)
         sample = (image_id, images, report_ids, report_masks, seq_length)
         return sample
