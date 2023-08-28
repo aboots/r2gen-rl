@@ -9,4 +9,5 @@ python3.10 main.py \
     --save_dir result \
     --step_size 50 \
     --gamma 0.1 \
+    --accum_iter 1 \
     --seed 9223

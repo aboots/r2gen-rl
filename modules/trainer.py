@@ -23,6 +23,7 @@ class BaseTrainer(object):
 
         self.epochs = self.args.epochs
         self.save_period = self.args.save_period
+        self.accum_iter = self.args.accum_iter
 
         self.mnt_mode = args.monitor_mode
         self.mnt_metric = 'val_' + args.monitor_metric
@@ -189,16 +190,22 @@ class Trainer(BaseTrainer):
 
         train_loss = 0
         self.model.train()
+
+        self.optimizer.zero_grad()
+
         for batch_idx, (images_id, images, reports_ids, reports_masks) in enumerate(self.train_dataloader):
             images, reports_ids, reports_masks = images.to(self.device), reports_ids.to(self.device), reports_masks.to(
                 self.device)
             output = self.model(images, reports_ids, mode='train')
             loss = self.criterion(output, reports_ids, reports_masks)
             train_loss += loss.item()
-            self.optimizer.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_value_(self.model.parameters(), 0.1)
-            self.optimizer.step()
+
+            if ((batch_idx + 1) % self.accum_iter == 0) or (batch_idx + 1 == len(self.train_dataloader)):
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+            
         log = {'train_loss': train_loss / len(self.train_dataloader)}
 
         self.model.eval()

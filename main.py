@@ -82,6 +82,8 @@ def parse_agrs():
     parser.add_argument('--seed', type=int, default=9233, help='.')
     parser.add_argument('--resume', type=str, help='whether to resume the training from existing checkpoints.')
 
+    parser.add_argument('--accum_iter', type=int, default=1, help='the number of iterations to accumulate gradients.')
+
     args = parser.parse_args()
     return args
 
