@@ -57,39 +57,41 @@ class MimiccxrSingleImageDataset(BaseDataset):
         return sample
 
 
-class FFAIRImageDataset(BaseDataset):
-    def __getitem__(self, idx):
-        example = self.examples[idx]
-        image_id = example['id']
-        image_path = example['image_path']
-        images = []
-        for ind in range(len(image_path)):
-            image = Image.open(os.path.join(self.image_dir, image_path[ind])).convert('RGB')
-            if self.transform is not None:
-                images.append(self.transform(image))
-        images = torch.stack(images, 0)
-        report_ids = example['ids']
-        report_masks = example['mask']
-        seq_length = len(report_ids)
-        sample = (image_id, images, report_ids, report_masks, seq_length)
-        return sample
-
-# ours
 # class FFAIRImageDataset(BaseDataset):
 #     def __getitem__(self, idx):
 #         example = self.examples[idx]
 #         image_id = example['id']
 #         image_path = example['image_path']
-#         for i in range(len(image_path)):
-#             image = Image.open(os.path.join(self.image_dir, image_path[i])).convert('RGB')
+#         images = []
+#         for ind in range(len(image_path)):
+#             image = Image.open(os.path.join(self.image_dir, image_path[ind])).convert('RGB')
 #             if self.transform is not None:
-#                 image = self.transform(image)
-#             if i == 0:
-#                 image_batch = image.unsqueeze(0)
-#             else:
-#                 image_batch = torch.cat((image_batch, image.unsqueeze(0)), 0)
+#                 images.append(self.transform(image))
+#         print('hi')
+#         print(len(images))
+#         images = torch.stack(images, 0)
 #         report_ids = example['ids']
 #         report_masks = example['mask']
 #         seq_length = len(report_ids)
-#         sample = (image_id, image_batch, report_ids, report_masks, seq_length)
+#         sample = (image_id, images, report_ids, report_masks, seq_length)
 #         return sample
+
+# ours
+class FFAIRImageDataset(BaseDataset):
+    def __getitem__(self, idx):
+        example = self.examples[idx]
+        image_id = example['id']
+        image_path = example['image_path']
+        for i in range(len(image_path)):
+            image = Image.open(os.path.join(self.image_dir, image_path[i])).convert('RGB')
+            if self.transform is not None:
+                image = self.transform(image)
+            if i == 0:
+                image_batch = image.unsqueeze(0)
+            else:
+                image_batch = torch.cat((image_batch, image.unsqueeze(0)), 0)
+        report_ids = example['ids']
+        report_masks = example['mask']
+        seq_length = len(report_ids)
+        sample = (image_id, image_batch, report_ids, report_masks, seq_length)
+        return sample

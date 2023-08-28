@@ -48,18 +48,19 @@ class R2DataLoader(DataLoader):
 
     @staticmethod
     def collate_fn(data):
-        images_id, images, reports_ids, reports_masks, seq_lengths = zip(*data)
-        images = torch.stack(images, 0)
-        max_seq_length = max(seq_lengths)
+        image_id_batch, image_batch, report_ids_batch, report_masks_batch, seq_lengths_batch = zip(*data)
+        image_batch = torch.stack(image_batch, 0)
+        max_seq_length = max(seq_lengths_batch)
 
-        targets = np.zeros((len(reports_ids), max_seq_length), dtype=int)
-        targets_masks = np.zeros((len(reports_ids), max_seq_length), dtype=int)
+        target_batch = np.zeros((len(report_ids_batch), max_seq_length), dtype=int)
+        target_masks_batch = np.zeros((len(report_ids_batch), max_seq_length), dtype=int)
 
-        for i, report_ids in enumerate(reports_ids):
-            targets[i, :len(report_ids)] = report_ids
+        for i, report_ids in enumerate(report_ids_batch):
+            target_batch[i, :len(report_ids)] = report_ids
 
-        for i, report_masks in enumerate(reports_masks):
-            targets_masks[i, :len(report_masks)] = report_masks
+        for i, report_masks in enumerate(report_masks_batch):
+            target_masks_batch[i, :len(report_masks)] = report_masks
 
-        return images_id, images, torch.LongTensor(targets), torch.FloatTensor(targets_masks)
+        return image_id_batch, image_batch, torch.LongTensor(target_batch), torch.FloatTensor(target_masks_batch)
+
 

@@ -47,15 +47,63 @@ class R2GenModel(nn.Module):
         else:
             raise ValueError
         return output
-    
+
+        
     # def forward_ffa_ir(self, images, targets=None, mode='train', update_opts={}):
-    #     for i in range(images.shape[0]):
-    #         att_features = self.visual_extractor(images[i])
-    #         if i == 0:
-    #             att_feats = att_features.unsqueeze(0)
-    #         else:
-    #             att_feats = torch.cat((att_feats, att_features.unsqueeze(0)), dim=0)
-    #     fc_feats = att_feats.mean(dim=1)
+    #     print(images.shape)
+    #     att_feats_list = []
+    #     fc_feats_list = []
+    #     for i in range(images.shape[1]):
+    #         att_feats_i, fc_feats_i = self.visual_extractor(images[:, i,:,:])
+    #         att_feats_list.append(att_feats_i)
+    #         fc_feats_list.append(fc_feats_i)
+    #     fc_feats = torch.cat(fc_feats_list, dim=1)
+    #     att_feats = torch.cat(att_feats_list, dim=1)
+
+
+    #     if mode == 'train':
+    #         output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
+    #         return output
+    #     elif mode == 'sample':
+    #         output, output_probs = self.encoder_decoder(fc_feats, att_feats, mode='sample')
+    #         return output, output_probs
+    #     else:
+    #         raise ValueError
+
+    def forward_ffa_ir(self, images, targets=None, mode='train', update_opts={}):
+        att_feats_list = []
+        fc_feats_list = []
+
+        for i in range(images.shape[1]):
+            att_feats_i, fc_feats_i = self.visual_extractor(images[:, i,:,:])
+            att_feats_list.append(att_feats_i)
+            fc_feats_list.append(fc_feats_i)
+        avg_att_feats_1 = torch.mean(torch.stack(att_feats_list[:30]), dim=0)
+        avg_att_feats_2 = torch.mean(torch.stack(att_feats_list[30:]), dim=0)
+        avg_fc_feats_1 = torch.mean(torch.stack(fc_feats_list[:30]), dim=0)
+        avg_fc_feats_2 = torch.mean(torch.stack(fc_feats_list[30:]), dim=0)
+        att_feats = torch.cat([avg_att_feats_1, avg_att_feats_2], dim=1)
+        fc_feats = torch.cat([avg_fc_feats_1, avg_fc_feats_2], dim=1)
+
+        if mode == 'train':
+            output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
+            return output
+        elif mode == 'sample':
+            output, _ = self.encoder_decoder(fc_feats, att_feats, mode='sample')
+            return output
+        else:
+            raise ValueError
+
+    # def forward_ffa_ir(self, images, targets=None, mode='train'):
+    #     att_feats = 0
+    #     fc_feats = 0
+    #     print(images.shape)
+    #     for ind in range(images.shape[1]):
+    #         att_feats_new, fc_feats_new = self.visual_extractor(images[:, ind])
+    #         att_feats += att_feats_new
+    #         fc_feats += fc_feats_new
+    #     att_feats /= images.shape[1]
+    #     fc_feats /= images.shape[1]
     #     if mode == 'train':
     #         output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
     #     elif mode == 'sample':
@@ -64,19 +112,23 @@ class R2GenModel(nn.Module):
     #         raise ValueError
     #     return output
 
-    def forward_ffa_ir(self, images, targets=None, mode='train'):
-        att_feats = 0
-        fc_feats = 0
-        for ind in range(images.shape[1]):
-            att_feats_new, fc_feats_new = self.visual_extractor(images[:, ind])
-            att_feats += att_feats_new
-            fc_feats += fc_feats_new
-        att_feats /= images.shape[1]
-        fc_feats /= images.shape[1]
-        if mode == 'train':
-            output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
-        elif mode == 'sample':
-            output, _ = self.encoder_decoder(fc_feats, att_feats, mode='sample')
-        else:
-            raise ValueError
-        return output
+    # def forward_ffa_ir(self, images, targets=None, mode='train', update_opts={}):
+    #     print(f'hi2 {images.shape}')
+    #     for i in range(images.shape[1]):
+    #         att_features, fc_features =  self.visual_extractor(images[i])
+    #         if i == 0:
+    #             att_feats = att_features.copy()
+    #             fc_feats = fc_features.copy()
+    #         else:
+    #             att_feats += att_features
+    #             fc_feats += fc_features
+    #     fc_feats /= images.shape[1]
+    #     att_feats /= images.shape[1]
+    #     if mode == 'train':
+    #         output = self.encoder_decoder(fc_feats, att_feats, targets, mode='forward')
+    #     elif mode == 'sample':
+    #         output, _ = self.encoder_decoder(fc_feats, att_feats, mode='sample')
+    #     else:
+    #         raise ValueError
+    #     return output
+    
