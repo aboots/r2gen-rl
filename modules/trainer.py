@@ -205,8 +205,16 @@ class Trainer(BaseTrainer):
             if ((batch_idx + 1) % self.accum_iter == 0) or (batch_idx + 1 == len(self.train_dataloader)):
                 self.optimizer.step()
                 self.optimizer.zero_grad()
+
+            if batch_idx % self.args.log_period == 0:
+                    print('[{}/{}] Step: {}/{}, Training Loss: {:.6f}'
+                                    .format(epoch, self.epochs, batch_idx, len(self.train_dataloader),
+                                            train_loss / (batch_idx + 1)))
+
             
         log = {'train_loss': train_loss / len(self.train_dataloader)}
+
+        print('Evaluating on validation set...')
 
         self.model.eval()
         with torch.no_grad():
@@ -222,6 +230,8 @@ class Trainer(BaseTrainer):
             val_met = self.metric_ftns({i: [gt] for i, gt in enumerate(val_gts)},
                                        {i: [re] for i, re in enumerate(val_res)})
             log.update(**{'val_' + k: v for k, v in val_met.items()})
+        
+        print('Evaluating on test set...')
 
         self.model.eval()
         with torch.no_grad():
